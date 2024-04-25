@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'videos.apps.VideosConfig',
+    'django_rq',
 ]
 
 MIDDLEWARE = [
@@ -72,8 +73,6 @@ TEMPLATES = [
 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = '/media/'
-
-
 WSGI_APPLICATION = 'videoflix.wsgi.application'
 
 
@@ -106,6 +105,25 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+RQ_QUEUES = {
+    'default': {
+        'HOST': 'localhost',
+        'PORT': 6379,
+        'DB': 0,
+        'DEFAULT_TIMEOUT': 360,
+    },
+}
+
+CACHES = {
+    "default": { 
+        "BACKEND": "django_redis.cache.RedisCache",       
+        "LOCATION": "redis://127.0.0.1:6379/1",       
+        "OPTIONS": {    
+            "CLIENT_CLASS": "django_redis.client.DefaultClient"     
+            },      
+        "KEY_PREFIX": "videoflix"  
+        }
+    }
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.0/topics/i18n/
