@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'videos.apps.VideosConfig',
     'django_rq',
+    'users',
 ]
 
 MIDDLEWARE = [
@@ -53,6 +54,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+AUTH_USER_MODEL = 'users.CustomUser'
 ROOT_URLCONF = 'videoflix.urls'
 
 TEMPLATES = [
@@ -74,7 +76,6 @@ TEMPLATES = [
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = '/media/'
 WSGI_APPLICATION = 'videoflix.wsgi.application'
-
 
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
@@ -108,6 +109,7 @@ AUTH_PASSWORD_VALIDATORS = [
 RQ_QUEUES = {
     'default': {
         'HOST': 'localhost',
+        'PASSWORD':'foobared', 
         'PORT': 6379,
         'DB': 0,
         'DEFAULT_TIMEOUT': 360,
@@ -118,7 +120,8 @@ CACHES = {
     "default": { 
         "BACKEND": "django_redis.cache.RedisCache",       
         "LOCATION": "redis://127.0.0.1:6379/1",       
-        "OPTIONS": {    
+        "OPTIONS": {   
+            "PASSWORD":"foobared", 
             "CLIENT_CLASS": "django_redis.client.DefaultClient"     
             },      
         "KEY_PREFIX": "videoflix"  

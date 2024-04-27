@@ -8,7 +8,7 @@ django-rq==2.10.2
 djangorestframework==3.15.1
 python-dateutil==2.9.0.post0
 redis==5.0.4
-rq==1.16.1
+rq==1.15.1
 rq-win @ git+https://github.com/michaelbrooks/rq-win.git@c6e65e38f8a6ca99a0c8e0dd6fe35f9b92837cca
 six==1.16.0
 sqlparse==0.5.0
