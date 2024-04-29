@@ -26,9 +26,18 @@ SECRET_KEY = 'django-insecure-p#%*jo8_*=13dcnzl9fpv!!r5_c+$-%*_r)3!swyu)205k(q%(
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    'localhost',
+    '127.0.0.1',
+    'localhost:4200',
+    'localhost:8000',
+    'http://localhost:4200/kanban',
+    'http://localhost:4200/register',
+    'localhost:4200/register',
+]
 
-
+CORS_ALLOWED_ORIGINS = ['http://localhost:4200','https://127.0.0.1',]
+CSRF_TRUSTED_ORIGINS = ['http://localhost:4200','https://127.0.0.1']
 # Application definition
 
 INSTALLED_APPS = [
@@ -39,6 +48,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'corsheaders',
+    'rest_framework.authtoken',
     'videos.apps.VideosConfig',
     'django_rq',
     'users',
@@ -52,6 +63,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
+
 ]
 
 AUTH_USER_MODEL = 'users.CustomUser'
