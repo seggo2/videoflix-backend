@@ -53,6 +53,9 @@ INSTALLED_APPS = [
     'videos.apps.VideosConfig',
     'django_rq',
     'users',
+    'django_registration',  
+    'django.contrib.sites', 
+   
 ]
 
 MIDDLEWARE = [
@@ -64,8 +67,8 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'corsheaders.middleware.CorsMiddleware',
-
 ]
+
 
 AUTH_USER_MODEL = 'users.CustomUser'
 ROOT_URLCONF = 'videoflix.urls'
