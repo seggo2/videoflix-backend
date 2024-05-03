@@ -1,0 +1,6 @@
+
+    Hello {{ user.username }}
+    Thank you for registering with us. Please click the link below to activate your account:
+    {{ protocol }}://{{ domain }}{% url 'django_registration_activate' activation_key=activation_key %}"
+    If you did not sign up for this account, you can safely ignore this email.
+

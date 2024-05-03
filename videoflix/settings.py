@@ -68,10 +68,17 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'corsheaders.middleware.CorsMiddleware',
 ]
-
-
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST = 'smtp.mail.de'
+EMAIL_HOST_USER = 'videoflix_project@mail.de'
+EMAIL_HOST_PASSWORD = 'Videoflixpassword123'
+EMAIL_USE_LOCALTIME = True 
 AUTH_USER_MODEL = 'users.CustomUser'
 ROOT_URLCONF = 'videoflix.urls'
+SITE_ID = 1  
+ACCOUNT_ACTIVATION_DAYS = 7 # One-week activation window
 
 TEMPLATES = [
     {
