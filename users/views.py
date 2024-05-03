@@ -117,7 +117,7 @@ class CustomRegistrationView(View):
         protocol = 'https' if self.request.is_secure() else 'http' 
         uid = urlsafe_base64_encode(force_bytes(user.pk))
         token = default_token_generator.make_token(user)
-        activation_key = f"{uid.encode()}-{token}"  # Kombiniere UID und Token
+        activation_key = f"{uid}-{token}"  # Kombiniere UID und Token
         
         message = render_to_string('account_activation_email.html', {
         'user': user,
@@ -135,12 +135,11 @@ def register_view(request):
     if request.method == 'POST':
         return CustomRegistrationView.as_view()(request)
     else:
-        return JsonResponse({'error': 'Only POST requests are allowed.'}, status=405)  # Method Not Allowed
+        return JsonResponse({'error': 'Only POST requests are allowed.'}, status=405)  
 
 
 
 class ActivationView(View):
-    @method_decorator(csrf_exempt)  # CSRF-Schutz für diese View deaktivieren (optional, je nach Bedarf)
     def dispatch(self, request, *args, **kwargs):
         return super().dispatch(request, *args, **kwargs)
 
@@ -155,7 +154,7 @@ class ActivationView(View):
         if default_token_generator.check_token(user, token):
             user.is_active = True
             user.save()
-            login(request, user)  # Optional: Automatisch den Benutzer einloggen
-            return redirect(reverse_lazy('activation_success'))  # Erfolgsmeldung oder Weiterleitung
+            login(request, user)  
+            return redirect(reverse_lazy('activation_success')) 
         else:
             return HttpResponse("Invalid activation link")
