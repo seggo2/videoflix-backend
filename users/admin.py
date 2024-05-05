@@ -15,7 +15,8 @@ class CustomUserAdmin(admin.ModelAdmin):
              'custom', 
              'phone', 
              'address',
-             'authenticated'
+             'authenticated',
+             'activation_token'
         )            
         }       
     )    

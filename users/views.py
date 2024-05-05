@@ -32,19 +32,23 @@ from django.shortcuts import redirect
 from django.http import HttpResponse
 from django.utils.decorators import method_decorator
 from django.utils.http import urlsafe_base64_decode
+from rest_framework import status
 
 class LoginView(ObtainAuthToken):
-  def post(self, request, *args, **kwargs):
-        serializer = self.serializer_class(data=request.data,
-                                           context={'request': request})
-        serializer.is_valid(raise_exception=True)
-        user = serializer.validated_data['user']
-        token, created = Token.objects.get_or_create(user=user)
-        return Response({
-            'token': token.key,
-            'user_id': user.pk,
-            'email': user.email
-        })  
+    def post(self, request, *args, **kwargs):
+        try:
+            serializer = self.serializer_class(data=request.data,
+                                               context={'request': request})
+            serializer.is_valid(raise_exception=True)
+            user = serializer.validated_data['user']
+            token, created = Token.objects.get_or_create(user=user)
+            return Response({
+                'token': token.key,
+                'user_id': user.pk,
+                'email': user.email
+            })
+        except Exception as e:
+            return Response({'detail': 'Failed to log in. Please Confirm youre email.'}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class put(APIView):
@@ -96,39 +100,40 @@ class CustomRegistrationView(View):
         return super().dispatch(request, *args, **kwargs)
 
     def post(self, request):
-        body_data = json.loads(request.body.decode('utf-8'))  # Parse JSON data
+        body_data = json.loads(request.body.decode('utf-8')) 
         username = body_data.get('username')
         email = body_data.get('email')
         password = body_data.get('password')
-        User = get_user_model()  # Holen des richtigen Benutzermodells
+        User = get_user_model()  
         user = User.objects.create_user(username=username, email=email, password=password)
-        user.is_active = False  # Setze den Benutzer zunächst als inaktiv
+        user.is_active = False  
         user.save()
 
-        # Sende Aktivierungs-E-Mail
         self.send_activation_email(user)
 
         return JsonResponse({'message': 'User created successfully. Please check your email to activate your account.'})
 
     def send_activation_email(self, user):
-        current_site = get_current_site(self.request)
-        mail_subject = 'Activate your account'
-        
-        protocol = 'https' if self.request.is_secure() else 'http' 
-        uid = urlsafe_base64_encode(force_bytes(user.pk))
-        token = default_token_generator.make_token(user)
-        activation_key = f"{uid}-{token}"  # Kombiniere UID und Token
-        
-        message = render_to_string('account_activation_email.html', {
+       current_site = get_current_site(self.request)
+       mail_subject = 'Activate your account'
+       protocol = 'https' if self.request.is_secure() else 'http' 
+       uid = urlsafe_base64_encode(force_bytes(user.pk))
+       token = default_token_generator.make_token(user)
+       activation_key = f"{uid}-{token}"  # Decode UID, um es als String zu verwenden
+
+       user.activation_token = token
+       user.save()
+    
+       message = render_to_string('account_activation_email.html', {
         'user': user,
         'domain': '127.0.0.1:8000',
-        'protocol': protocol,  # Füge das Protokoll hinzu
-        'activation_key': activation_key,  # Füge den Aktivierungsschlüssel hinzu
-        })
-        
-        to_email = user.email
-        email = EmailMessage(mail_subject, message,'videoflix_project@mail.de', to=[to_email])
-        email.send()
+        'protocol': protocol, 
+        'activation_key': activation_key,  
+    })
+    
+       to_email = user.email
+       email = EmailMessage(mail_subject, message, 'videoflix_project@mail.de', to=[to_email])
+       email.send()
 
 @csrf_exempt
 def register_view(request):
@@ -145,16 +150,18 @@ class ActivationView(View):
 
     def get(self, request, activation_key):
         try:
-            uidb64, token = activation_key.split('-')
-            uid = urlsafe_base64_decode(uidb64).decode()
-            user = get_user_model().objects.get(pk=uid)
+            uid, token, _ = activation_key.split('-')  
+            uid_decoded = urlsafe_base64_decode(uid).decode()
+            user = get_user_model().objects.get(pk=uid_decoded)
         except (ValueError, OverflowError, get_user_model().DoesNotExist):
             return HttpResponse("Invalid activation link")
-
-        if default_token_generator.check_token(user, token):
+        tokenUser,tokenSecond=user.activation_token.split('-')  
+        if tokenUser == token and tokenSecond == _:
             user.is_active = True
+            user.authenticated=True
             user.save()
             login(request, user)  
-            return redirect(reverse_lazy('activation_success')) 
+            return HttpResponse("Thank You")
+
         else:
             return HttpResponse("Invalid activation link")
