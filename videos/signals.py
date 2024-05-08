@@ -1,5 +1,5 @@
 import os
-from .tasks import convert_video, convert_video_delete
+from .tasks import convert_video, convert_video_delete,convert_video_720p,convert_video_1080p,extract_thumbnail
 from .models import Video
 from django.dispatch import receiver
 from django.db.models.signals import post_save,post_delete
@@ -11,7 +11,12 @@ def video_post_save(sender, instance, created, **kwargs):
     print('video wurde gespeichert')
     if created:
         queue = django_rq.get_queue('default', autocommit=True)
-        queue.enqueue(convert_video, instance.video_file.path)        
+        # queue.enqueue(convert_video, instance.video_file.path)
+        # queue.enqueue(convert_video_720p, instance.video_file.path)   
+        # queue.enqueue(convert_video_1080p, instance.video_file.path)     
+        queue.enqueue(extract_thumbnail, instance.video_file.path)     
+
+             
         
         
         
