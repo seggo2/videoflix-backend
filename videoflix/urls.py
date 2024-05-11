@@ -4,10 +4,13 @@ from django.urls import include, path
 from django.conf.urls.static import static
 from videoflix import settings
 from users.views import LoginView,delete,CustomRegistrationView,ActivationView
+from videos.views import VideoflixBoard,download_image
 
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('videoflix/', VideoflixBoard.as_view()),
+    path('download-image/<str:image_name>/', download_image, name='download_image'),
     path('django-rq/', include('django_rq.urls')),
     path('login/', LoginView.as_view()),
     path('register/', CustomRegistrationView.as_view(), name='custom_register'),  
