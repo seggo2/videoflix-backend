@@ -7,7 +7,8 @@ from rest_framework.views import APIView
 from django.conf import settings
 import os
 from django.http import HttpResponse
-
+from .models import Video
+from django.shortcuts import get_object_or_404
 
 
 
@@ -24,12 +25,20 @@ class VideoflixBoard(APIView):
           
           
 def download_image(request, image_name):
-    image_path = os.path.join(settings.MEDIA_ROOT, 'videos', image_name)
-    if os.path.exists(image_path):
-        with open(image_path, 'rb') as file:
-            response = HttpResponse(file.read(), content_type='image/jpeg')
-            response['Content-Disposition'] = f'attachment; filename="{image_name}"'
-            return response
+    video_name = image_name.replace('.jpg', '.mp4')
+    video_path = os.path.join(settings.MEDIA_ROOT, 'videos', video_name)
+
+    if os.path.exists(video_path):
+        video_file = f'videos/{video_name}'
+        video = get_object_or_404(Video, video_file=video_file)
+
+        video_data = {
+            'title': video.title,
+            'description': video.description,
+            'image_url': f'http://localhost:8000/media/videos/{image_name}'
+        }
+
+        return JsonResponse(video_data)
     else:
-        return HttpResponse('Image not found', status=404)
+        return HttpResponse('Video not found', status=404)
 
