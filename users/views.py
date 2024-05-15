@@ -33,6 +33,7 @@ from django.http import HttpResponse
 from django.utils.decorators import method_decorator
 from django.utils.http import urlsafe_base64_decode
 from rest_framework import status
+from django.contrib.auth import logout
 
 class LoginView(ObtainAuthToken):
     def post(self, request, *args, **kwargs):
@@ -165,3 +166,20 @@ class ActivationView(View):
 
         else:
             return HttpResponse("Invalid activation link")
+
+
+class LogoutView(View):
+    @csrf_exempt
+    def post(self, request, *args, **kwargs):
+        logout(request)
+        return JsonResponse({'message': 'Successfully logged out'}, status=200)
+
+
+
+class UserDetailView(View):
+    @csrf_exempt
+    def get(self, request , *args, **kwargs):
+        user = request.user
+        user_data = CustomUser.objects.filter(pk=user.pk).values('first_name', 'last_name', 'address', 'phone').first()
+        user_json = json.dumps(user_data)  
+        return JsonResponse(user_json, safe=False)
