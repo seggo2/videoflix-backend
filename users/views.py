@@ -168,18 +168,17 @@ class ActivationView(View):
             return HttpResponse("Invalid activation link")
 
 
-class LogoutView(View):
-    @csrf_exempt
-    def post(self, request, *args, **kwargs):
-        logout(request)
-        return JsonResponse({'message': 'Successfully logged out'}, status=200)
 
+class UserDetailView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
 
-
-class UserDetailView(View):
-    @csrf_exempt
-    def get(self, request , *args, **kwargs):
+    def get(self, request, *args, **kwargs):
         user = request.user
-        user_data = CustomUser.objects.filter(pk=user.pk).values('first_name', 'last_name', 'address', 'phone').first()
-        user_json = json.dumps(user_data)  
-        return JsonResponse(user_json, safe=False)
+        user_data = {
+            'first_name': user.first_name,
+            'last_name': user.last_name,
+            'address': user.address,
+            'phone': user.phone
+        }
+        return Response(user_data)
