@@ -4,7 +4,7 @@ from django.urls import include, path
 from django.conf.urls.static import static
 from videoflix import settings
 from users.views import LoginView,delete,CustomRegistrationView,ActivationView,UserDetailView
-from videos.views import VideoflixBoard,download_image
+from videos.views import VideoflixBoard,download_image,get_video
 
 
 urlpatterns = [
@@ -18,7 +18,8 @@ urlpatterns = [
     path('accounts/activate/<str:activation_key>/', ActivationView.as_view(), name='django_registration_activate'),
     path('accounts/', include('django_registration.backends.activation.urls')),
     path('accounts/', include('django.contrib.auth.urls')),
-    path('user/', UserDetailView.as_view(), name='user_detail'),
+    path('videos/<str:video_name>/', get_video),
+    path('user/', UserDetailView.as_view()),
 
 
 ] + static(settings.MEDIA_URL, document_root = settings.MEDIA_ROOT)

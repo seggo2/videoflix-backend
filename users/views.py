@@ -174,11 +174,36 @@ class UserDetailView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, *args, **kwargs):
-        user = request.user
-        user_data = {
+       if request.method == 'GET':
+          user = request.user
+          user_data = {
             'first_name': user.first_name,
             'last_name': user.last_name,
             'address': user.address,
             'phone': user.phone
         }
-        return Response(user_data)
+          return Response(user_data)
+    def put(self, request, *args, **kwargs):
+        user = request.user
+        if not user.is_authenticated:
+            return JsonResponse({'error': 'User not authenticated'}, status=401)
+        
+        try:
+            data = json.loads(request.body)
+            user.first_name = data.get('first_name', user.first_name)
+            user.last_name = data.get('last_name', user.last_name)
+            user.address = data.get('address', user.address)
+            user.phone = data.get('phone', user.phone)
+            user.save()
+
+            return JsonResponse({
+                'message': 'User details updated successfully',
+                'first_name': user.first_name,
+                'last_name': user.last_name,
+                'address': user.address,
+                'phone': user.phone
+            }, status=200)
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Invalid JSON data'}, status=400)
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)

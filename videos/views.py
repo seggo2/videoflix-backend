@@ -9,6 +9,7 @@ import os
 from django.http import HttpResponse
 from .models import Video
 from django.shortcuts import get_object_or_404
+from django.http import HttpResponseNotFound
 
 
 
@@ -41,4 +42,21 @@ def download_image(request, image_name):
         return JsonResponse(video_data)
     else:
         return HttpResponse('Video not found', status=404)
+    
+    
+def get_video(request, video_name):
+    video_name, extension = os.path.splitext(video_name)
+    
+    video_path = f'media/videos/{video_name}.mp4'
+    if not os.path.exists(video_path):
+        return HttpResponseNotFound('Video not found')
+    
+    video_urls = {
+        '1080p': f'http://localhost:8000/media/videos/{video_name}_1080p.mp4',
+        '720p': f'http://localhost:8000/media/videos/{video_name}_720p.mp4',
+        '480p': f'http://localhost:8000/media/videos/{video_name}_480p.mp4'
+    }
+    
+    return JsonResponse(video_urls)
+
 
