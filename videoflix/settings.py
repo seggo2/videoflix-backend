@@ -33,12 +33,18 @@ ALLOWED_HOSTS = [
     'localhost:4200',
     'localhost:8000',
     'sefa-gur.developerakademie.org',
+    'sefa-guer.developerakademie.net'
     
 ]
 
-CORS_ALLOWED_ORIGINS = ['http://localhost:4200','https://127.0.0.1',]
+
 CSRF_TRUSTED_ORIGINS = ['http://localhost:4200','https://127.0.0.1']
 
+CORS_ALLOWED_ORIGINS = [
+    'https://sefa-guer.developerakademie.net',
+    'http://localhost:4200',
+    'https://127.0.0.1',
+]
 
 # Application definition
 
