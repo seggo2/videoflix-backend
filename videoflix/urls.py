@@ -5,7 +5,7 @@ from django.conf.urls.static import static
 from videoflix import settings
 from users.views import LoginView,delete,CustomRegistrationView,ActivationView,UserDetailView,PasswordResetRequestView,PasswordResetConfirmView,setNewPassword
 from videos.views import VideoflixBoard,download_image,get_video
-
+from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -25,4 +25,7 @@ urlpatterns = [
     path('user/', UserDetailView.as_view()),
 
 
-] + static(settings.MEDIA_URL, document_root = settings.MEDIA_ROOT)
+]
+
+urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

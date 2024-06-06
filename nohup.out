@@ -1,0 +1,72 @@
+Watching for file changes with StatReloader
+Watching for file changes with StatReloader
+Error: That port is already in use.
+Not Found: /
+[24/May/2024 11:47:41] "GET / HTTP/1.1" 404 3981
+Not Found: /
+[24/May/2024 11:48:16] "GET / HTTP/1.0" 404 3997
+Performing system checks...
+
+System check identified no issues (0 silenced).
+May 24, 2024 - 11:47:22
+Django version 5.0.4, using settings 'videoflix.settings'
+Starting development server at http://0.0.0.0:8000/
+Quit the server with CONTROL-C.
+
+Watching for file changes with StatReloader
+Not Found: /
+[24/May/2024 12:59:01] "GET / HTTP/1.1" 404 3981
+Not Found: /
+[24/May/2024 13:09:05] "GET / HTTP/1.0" 404 3997
+Not Found: /
+[25/May/2024 02:08:17] "GET / HTTP/1.0" 404 3997
+Not Found: /
+[25/May/2024 02:08:17] "GET / HTTP/1.0" 404 3997
+Not Found: /
+[25/May/2024 20:34:56] "GET / HTTP/1.0" 404 3997
+Not Found: /
+[25/May/2024 20:34:56] "GET / HTTP/1.0" 404 3997
+Not Found: /
+[25/May/2024 20:34:56] "GET / HTTP/1.0" 404 3997
+Not Found: /
+[25/May/2024 20:34:56] "GET / HTTP/1.0" 404 3997
+Not Found: /
+[26/May/2024 03:00:55] "GET / HTTP/1.0" 404 3997
+Not Found: /
+[26/May/2024 17:35:54] "GET / HTTP/1.0" 404 3997
+Not Found: /
+[26/May/2024 17:35:54] "GET / HTTP/1.0" 404 3997
+Not Found: /
+[27/May/2024 13:49:57] "GET / HTTP/1.0" 404 3997
+Not Found: /
+[27/May/2024 13:49:57] "GET / HTTP/1.0" 404 3997
+Not Found: /
+[27/May/2024 15:40:18] "GET / HTTP/1.0" 404 3997
+Not Found: /favicon.ico
+[27/May/2024 15:40:19] "GET /favicon.ico HTTP/1.0" 404 4048
+Not Found: /
+[27/May/2024 15:45:32] "GET / HTTP/1.0" 404 3997
+Not Found: /
+[27/May/2024 15:52:14] "GET / HTTP/1.0" 404 3997
+Not Found: /
+[27/May/2024 15:58:27] "GET / HTTP/1.0" 404 3997
+Not Found: /
+[27/May/2024 15:59:22] "GET / HTTP/1.0" 404 3997
+Not Found: /favicon.ico
+[27/May/2024 15:59:22] "GET /favicon.ico HTTP/1.0" 404 4048
+Not Found: /.git/config
+[27/May/2024 21:46:13] "GET /.git/config HTTP/1.0" 404 4048
+Not Found: /
+[28/May/2024 08:03:31] "GET / HTTP/1.0" 404 3997
+Not Found: /
+[28/May/2024 08:03:31] "GET / HTTP/1.0" 404 3997
+Not Found: /
+[28/May/2024 10:31:43] "GET / HTTP/1.0" 404 3997
+Performing system checks...
+
+System check identified no issues (0 silenced).
+May 24, 2024 - 12:57:33
+Django version 5.0.4, using settings 'videoflix.settings'
+Starting development server at http://0.0.0.0:8000/
+Quit the server with CONTROL-C.
+

@@ -16,7 +16,8 @@ from pathlib import Path
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
+STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
@@ -31,13 +32,14 @@ ALLOWED_HOSTS = [
     '127.0.0.1',
     'localhost:4200',
     'localhost:8000',
-    'http://localhost:4200/kanban',
-    'http://localhost:4200/register',
-    'localhost:4200/register',
+    'sefa-gur.developerakademie.org',
+    
 ]
 
 CORS_ALLOWED_ORIGINS = ['http://localhost:4200','https://127.0.0.1',]
 CSRF_TRUSTED_ORIGINS = ['http://localhost:4200','https://127.0.0.1']
+
+
 # Application definition
 
 INSTALLED_APPS = [
@@ -105,10 +107,15 @@ WSGI_APPLICATION = 'videoflix.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'PostgresVideoflix',
+        'USER': 'sefa',
+        'PASSWORD': 'sefa123',
+        'HOST': 'localhost',
+        'PORT': '5432',
     }
 }
+
 
 
 # Password validation

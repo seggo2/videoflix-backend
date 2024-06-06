@@ -34,6 +34,7 @@ from django.shortcuts import get_object_or_404
 from django.utils.decorators import method_decorator
 from django.shortcuts import redirect
 
+
 class LoginView(ObtainAuthToken):
     def post(self, request, *args, **kwargs):
         try:
@@ -41,6 +42,8 @@ class LoginView(ObtainAuthToken):
                                                context={'request': request})
             serializer.is_valid(raise_exception=True)
             user = serializer.validated_data['user']
+            if not user.is_authenticated:
+                return Response({'detail': 'Please confirm your email.'}, status=status.HTTP_400_BAD_REQUEST)
             token, created = Token.objects.get_or_create(user=user)
             return Response({
                 'token': token.key,
@@ -48,7 +51,7 @@ class LoginView(ObtainAuthToken):
                 'email': user.email
             })
         except Exception as e:
-            return Response({'detail': 'Failed to log in. Please Confirm youre email.'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'detail': 'Username or password are wrong.'}, status=status.HTTP_400_BAD_REQUEST)
 
 class put(APIView):
     authentication_classes = [TokenAuthentication]
@@ -128,7 +131,7 @@ class CustomRegistrationView(View):
     
        message = render_to_string('account_activation_email.html', {
         'user': user,
-        'domain': '127.0.0.1:8000',
+        'domain': 'sefa-gur.developerakademie.org',
         'protocol': protocol, 
         'activation_key': activation_key,  
     })
@@ -218,7 +221,7 @@ class PasswordResetRequestView(View):
         return JsonResponse({"message": "Password reset email sent."}, status=200)
 
     def send_password_reset_email(self, user):
-        domain ='127.0.0.1:8000'
+        domain ='sefa-gur.developerakademie.org'
         mail_subject = 'Passwort zurücksetzen'
         protocol = 'https' if self.request.is_secure() else 'http'
         uid = urlsafe_base64_encode(force_bytes(user.pk))
