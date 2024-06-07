@@ -1,57 +1,67 @@
-import os
-from django.conf import settings
-from django.test import TestCase, Client
 from django.urls import reverse
-from django.core.files.uploadedfile import SimpleUploadedFile
+from rest_framework.test import APITestCase
+from rest_framework import status
 from .models import Video
+import os
 
-
-class VideoViewsTestCase(TestCase):
-
+class VideoViewsTestCase(APITestCase):
+    
     def setUp(self):
-        self.client = Client()
         self.test_video = Video.objects.create(
-            title="Test Video",
-            description="Test Description",
-            genre="Test Genre",
-            video_file=SimpleUploadedFile("test_video.mp4", b"file_content", content_type="video/mp4")
+            title='Test Video',
+            description='Test Description',
+            genre='Test Genre',
+            video_file='videos/test_video.mp4'
         )
-        self.test_image = SimpleUploadedFile("test_image.jpg", b"file_content", content_type="image/jpeg")
-        video_dir = os.path.join(settings.MEDIA_ROOT, 'videos')
-        if not os.path.exists(video_dir):
-            os.makedirs(video_dir)
+        video_dir = os.path.join(os.path.dirname(__file__), 'media', 'videos')
+        os.makedirs(video_dir, exist_ok=True)
         with open(os.path.join(video_dir, self.test_video.video_file.name), 'wb') as f:
-            f.write(b"file_content")
-        with open(os.path.join(video_dir, "test_image.jpg"), 'wb') as f:
-            f.write(b"file_content")
+            f.write(b'Test video content')
+
 
     def tearDown(self):
-        self.test_video.delete()
-        video_dir = os.path.join(settings.MEDIA_ROOT, 'videos')
+        # Remove test video file
+        video_dir = os.path.join(os.path.dirname(__file__), 'media', 'videos')
         os.remove(os.path.join(video_dir, self.test_video.video_file.name))
-        os.remove(os.path.join(video_dir, "test_image.jpg"))
+        os.rmdir(video_dir)
+
 
     def test_videoflix_board(self):
-        response = self.client.get(reverse('videoflix-board'))
-        self.assertEqual(response.status_code, 200)
-        self.assertIn("test_image.jpg", response.json())
+        url = reverse('videoflix-board')
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn(self.test_video.video_file.name.replace('.mp4', '.jpg'), response.data)
+
 
     def test_download_image(self):
-        response = self.client.get(reverse('download_image', args=['test_image.jpg']))
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json()['title'], self.test_video.title)
+        image_name = self.test_video.video_file.name.replace('.mp4', '.jpg')
+        url = reverse('download-image', kwargs={'image_name': image_name})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn('title', response.data)
+        self.assertIn('description', response.data)
+        self.assertIn('image_url', response.data)
+
 
     def test_download_image_not_found(self):
-        response = self.client.get(reverse('download_image', args=['non_existent.jpg']))
-        self.assertEqual(response.status_code, 404)
+        image_name = 'nonexistent_image.jpg'
+        url = reverse('download-image', kwargs={'image_name': image_name})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
 
     def test_get_video(self):
-        response = self.client.get(reverse('get_video', args=[self.test_video.video_file.name]))
-        self.assertEqual(response.status_code, 200)
-        self.assertIn('1080p', response.json())
-        self.assertIn('720p', response.json())
-        self.assertIn('480p', response.json())
+        video_name = self.test_video.video_file.name.replace('.mp4', '')
+        url = reverse('get-video', kwargs={'video_name': video_name})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn('1080p', response.data)
+        self.assertIn('720p', response.data)
+        self.assertIn('480p', response.data)
+
 
     def test_get_video_not_found(self):
-        response = self.client.get(reverse('get_video', args=['non_existent.mp4']))
-        self.assertEqual(response.status_code, 404)
+        video_name = 'nonexistent_video'
+        url = reverse('get-video', kwargs={'video_name': video_name})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
