@@ -17,11 +17,14 @@ class VideoViewsTestCase(APITestCase):
         os.makedirs(video_dir, exist_ok=True)
         with open(os.path.join(video_dir, 'test_video.mp4'), 'wb') as f:
             f.write(b'Test video content')
+        with open(os.path.join(video_dir, 'test_video.jpg'), 'wb') as f:
+            f.write(b'Test image content')
 
     def tearDown(self):
-        # Remove test video file
+        # Remove test video and image files
         video_dir = os.path.join(os.path.dirname(__file__), 'media', 'videos')
         os.remove(os.path.join(video_dir, 'test_video.mp4'))
+        os.remove(os.path.join(video_dir, 'test_video.jpg'))
         os.rmdir(video_dir)
 
     def test_videoflix_board(self):
