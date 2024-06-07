@@ -35,7 +35,7 @@ class LoginView(ObtainAuthToken):
             if not user.is_authenticated:
                 return Response({'detail': 'Please confirm your email.'},
                                 status=status.HTTP_400_BAD_REQUEST)
-            token, created = Token.objects.get_or_create(user=user)
+            token = Token.objects.get_or_create(user=user)
             return Response({
                 'token': token.key,
                 'user_id': user.pk,
