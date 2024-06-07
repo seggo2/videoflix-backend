@@ -4,7 +4,7 @@ from django.conf.urls.static import static
 from videoflix import settings
 from users.views import (
     LoginView,
-    delete,
+    DeleteView,
     CustomRegistrationView,
     ActivationView,
     UserDetailView,
@@ -24,7 +24,7 @@ urlpatterns = [
     path('django-rq/', include('django_rq.urls')),
     path('login/', LoginView.as_view()),
     path('register/', CustomRegistrationView.as_view(), name='custom_register'),
-    path('kanban/<int:pk>/delete/', delete.as_view()),
+    path('kanban/<int:pk>/delete/', DeleteView.as_view()),
     path('accounts/activate/<str:activation_key>/', ActivationView.as_view(), name='django_registration_activate'),
     path('accounts/', include('django_registration.backends.activation.urls')),
     path('accounts/', include('django.contrib.auth.urls')),
