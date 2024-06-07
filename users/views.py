@@ -18,33 +18,24 @@ from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-
+from rest_framework.exceptions import AuthenticationFailed
 from .models import CustomUser
 from .serializers import UserSerializer
 
 
 class LoginView(ObtainAuthToken):
     def post(self, request, *args, **kwargs):
-        try:
-            serializer = self.serializer_class(
-                data=request.data,
-                context={'request': request}
-            )
-            serializer.is_valid(raise_exception=True)
-            user = serializer.validated_data['user']
-            if not user.is_authenticated:
-                return Response({'detail': 'Please confirm your email.'},
-                                status=status.HTTP_400_BAD_REQUEST)
-            token = Token.objects.get_or_create(user=user)
-            return Response({
-                'token': token.key,
-                'user_id': user.pk,
-                'email': user.email
-            })
-        except Exception:
-            return Response({'detail': 'Username or password are wrong.'},
-                            status=status.HTTP_400_BAD_REQUEST)
-
+        serializer = self.serializer_class(data=request.data, context={'request': request})
+        serializer.is_valid(raise_exception=True)
+        user = serializer.validated_data['user']
+        if not user.is_active:
+            raise AuthenticationFailed('Please confirm your email.')
+        token, created = Token.objects.get_or_create(user=user)
+        return Response({
+            'token': token.key,
+            'user_id': user.pk,
+            'email': user.email
+        })
 
 class PutView(APIView):
     authentication_classes = [TokenAuthentication]
