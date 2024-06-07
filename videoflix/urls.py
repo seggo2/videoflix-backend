@@ -10,7 +10,7 @@ from users.views import (
     UserDetailView,
     PasswordResetRequestView,
     PasswordResetConfirmView,
-    setNewPassword
+    SetNewPassword
 )
 from videos.views import VideoflixBoard, download_image, get_video
 
@@ -19,7 +19,7 @@ urlpatterns = [
     path('videoflix/', VideoflixBoard.as_view()),
     path('password-reset/', PasswordResetRequestView.as_view()),
     path('reset-password/<uidb64>/<token>/', PasswordResetConfirmView.as_view(), name='password_reset_confirm'),
-    path('api/reset-password/', setNewPassword.as_view()),
+    path('api/reset-password/', SetNewPassword.as_view()),
     path('download-image/<str:image_name>/', download_image, name='download_image'),
     path('django-rq/', include('django_rq.urls')),
     path('login/', LoginView.as_view()),
