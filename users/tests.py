@@ -61,14 +61,14 @@ class UserAPITest(APITestCase):
 
     def test_user_detail_view(self):
         self.client.force_authenticate(user=self.user)
-        url = reverse('user-detail')
+        url = reverse('UserDetailView')
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['first_name'], '')
         self.assertEqual(response.data['last_name'], '')
 
     def test_register_view(self):
-        url = reverse('register-view')
+        url = reverse('CustomRegistrationView')
         data = {
             'username': 'newuser',
             'email': 'newuser@example.com',
@@ -82,12 +82,12 @@ class UserAPITest(APITestCase):
         uid = urlsafe_base64_encode(force_bytes(self.user.pk))
         token = default_token_generator.make_token(self.user)
         activation_key = f"{uid}-{token}"
-        url = reverse('activation-view', kwargs={'activation_key': activation_key})
+        url = reverse('ActivationView', kwargs={'activation_key': activation_key})
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_password_reset_request_view(self):
-        url = reverse('password_reset_request_view')
+        url = reverse('PasswordResetRequestView')
         data = {'email': 'testuser@example.com'}
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -96,14 +96,14 @@ class UserAPITest(APITestCase):
     def test_password_reset_confirm_view(self):
         uid = urlsafe_base64_encode(force_bytes(self.user.pk))
         token = default_token_generator.make_token(self.user)
-        url = reverse('password_reset_confirm_view', kwargs={'uidb64': uid, 'token': token})
+        url = reverse('PasswordResetConfirmView', kwargs={'uidb64': uid, 'token': token})
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_302_FOUND)
 
     def test_set_new_password_view(self):
         uid = urlsafe_base64_encode(force_bytes(self.user.pk))
         token = default_token_generator.make_token(self.user)
-        url = reverse('set_new_password_view')
+        url = reverse('SetNewPassword')
         data = {
             'uid': uid,
             'token': token,
@@ -125,6 +125,6 @@ class UserAPITest(APITestCase):
 
     def test_delete_view(self):
         self.client.force_authenticate(user=self.user)
-        url = reverse('delete-view', kwargs={'pk': self.user.pk})
+        url = reverse('DeleteView', kwargs={'pk': self.user.pk})
         response = self.client.delete(url)
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
