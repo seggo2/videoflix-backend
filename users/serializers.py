@@ -1,10 +1,9 @@
-from .models import CustomUser
 from rest_framework import serializers
-from django.contrib.auth.models import User
+
+from .models import CustomUser
 
 
 class UserSerializer(serializers.ModelSerializer):
-    
     author_name = serializers.SerializerMethodField()
 
     def get_author_name(self, obj):

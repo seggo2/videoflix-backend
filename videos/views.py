@@ -1,16 +1,12 @@
-from django.shortcuts import render
-from rest_framework.authentication import TokenAuthentication
-from rest_framework.permissions import IsAuthenticated
-from django.http import Http404, JsonResponse
+import os
+
+from django.conf import settings
+from django.http import JsonResponse, HttpResponse, HttpResponseNotFound
+from django.shortcuts import get_object_or_404
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from django.conf import settings
-import os
-from django.http import HttpResponse
-from .models import Video
-from django.shortcuts import get_object_or_404
-from django.http import HttpResponseNotFound
 
+from .models import Video
 
 
 class VideoflixBoard(APIView):
@@ -19,9 +15,8 @@ class VideoflixBoard(APIView):
         files = os.listdir(videos_dir)
         images = [file for file in files if file.endswith('.jpg')]
         return Response(images)
-          
-          
-          
+
+
 def download_image(request, image_name):
     video_name = image_name.replace('.jpg', '.mp4')
     video_path = os.path.join(settings.MEDIA_ROOT, 'videos', video_name)
@@ -39,12 +34,12 @@ def download_image(request, image_name):
         return JsonResponse(video_data)
     else:
         return HttpResponse('Video not found', status=404)
-    
-    
+
+
 def get_video(request, video_name):
-    video_name, extension = os.path.splitext(video_name)
+    video_name, _ = os.path.splitext(video_name)
     video_path = os.path.join(settings.MEDIA_ROOT, 'videos', f'{video_name}.mp4')
-    
+
     if not os.path.exists(video_path):
         return HttpResponseNotFound('Video not found')
 
@@ -55,5 +50,3 @@ def get_video(request, video_name):
     }
 
     return JsonResponse(video_urls)
-
-

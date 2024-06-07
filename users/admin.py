@@ -1,23 +1,25 @@
 from django.contrib import admin
-from .models import CustomUser
-from .forms import CustomUserCreationForm
 from django.contrib.auth.admin import UserAdmin
-# Register your models here.
+
+from .forms import CustomUserCreationForm
+from .models import CustomUser
+
+
 @admin.register(CustomUser)
-class CustomUserAdmin(admin.ModelAdmin):
-    add_form = CustomUserCreationForm    
-    fieldsets = ( 
-        *UserAdmin.fieldsets, 
-    (            
-           'Individuelle Daten',
-        {               
-         'fields': (  
-             'custom', 
-             'phone', 
-             'address',
-             'authenticated',
-             'activation_token'
-        )            
-        }       
-    )    
-)
+class CustomUserAdmin(UserAdmin):
+    add_form = CustomUserCreationForm
+    fieldsets = (
+        *UserAdmin.fieldsets,
+        (
+            'Individuelle Daten',
+            {
+                'fields': (
+                    'custom',
+                    'phone',
+                    'address',
+                    'authenticated',
+                    'activation_token',
+                )
+            }
+        ),
+    )

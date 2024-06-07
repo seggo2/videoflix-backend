@@ -18,6 +18,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
@@ -33,12 +34,15 @@ ALLOWED_HOSTS = [
     'localhost:4200',
     'localhost:8000',
     'sefa-gur.developerakademie.org',
-    'sefa-guer.developerakademie.net'
-    
+    'sefa-guer.developerakademie.net'    
 ]
 
-
-CSRF_TRUSTED_ORIGINS = ['http://localhost:4200','https://127.0.0.1']
+CSRF_TRUSTED_ORIGINS = [
+    'https://localhost:4200',
+    'https://127.0.0.1',
+    'https://sefa-gur.developerakademie.org',
+    'https://sefa-guer.developerakademie.net',
+]
 
 CORS_ALLOWED_ORIGINS = [
     'https://sefa-guer.developerakademie.net',
@@ -61,32 +65,33 @@ INSTALLED_APPS = [
     'videos.apps.VideosConfig',
     'django_rq',
     'users',
-    'django_registration',  
-    'django.contrib.sites', 
-   
+    'django_registration',
+    'django.contrib.sites',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',  # CORS Middleware should be before CommonMiddleware
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
 ]
+
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST = 'smtp.mail.de'
 EMAIL_HOST_USER = 'videoflix_project@mail.de'
 EMAIL_HOST_PASSWORD = 'Videoflixpassword123'
-EMAIL_USE_LOCALTIME = True 
+EMAIL_USE_LOCALTIME = True
+
 AUTH_USER_MODEL = 'users.CustomUser'
 ROOT_URLCONF = 'videoflix.urls'
 SITE_ID = 1  
-ACCOUNT_ACTIVATION_DAYS = 7 # One-week activation window
+ACCOUNT_ACTIVATION_DAYS = 7  # One-week activation window
 
 TEMPLATES = [
     {
@@ -106,6 +111,7 @@ TEMPLATES = [
 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = '/media/'
+
 WSGI_APPLICATION = 'videoflix.wsgi.application'
 
 # Database
@@ -121,11 +127,6 @@ DATABASES = {
         'PORT': '5432',
     }
 }
-
-
-
-# Password validation
-# https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -145,7 +146,7 @@ AUTH_PASSWORD_VALIDATORS = [
 RQ_QUEUES = {
     'default': {
         'HOST': 'localhost',
-        'PASSWORD':'foobared', 
+        'PASSWORD': 'foobared',
         'PORT': 6379,
         'DB': 0,
         'DEFAULT_TIMEOUT': 360,
@@ -153,35 +154,21 @@ RQ_QUEUES = {
 }
 
 CACHES = {
-    "default": { 
-        "BACKEND": "django_redis.cache.RedisCache",       
-        "LOCATION": "redis://127.0.0.1:6379/1",       
-        "OPTIONS": {   
-            "PASSWORD":"foobared", 
-            "CLIENT_CLASS": "django_redis.client.DefaultClient"     
-            },      
-        "KEY_PREFIX": "videoflix"  
-        }
+    'default': {
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': 'redis://127.0.0.1:6379/1',
+        'OPTIONS': {
+            'PASSWORD': 'foobared',
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+        },
+        'KEY_PREFIX': 'videoflix',
     }
-
-# Internationalization
-# https://docs.djangoproject.com/en/5.0/topics/i18n/
+}
 
 LANGUAGE_CODE = 'en-us'
-
 TIME_ZONE = 'UTC'
-
 USE_I18N = True
-
 USE_TZ = True
 
-
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/5.0/howto/static-files/
-
-STATIC_URL = 'static/'
-
-# Default primary key field type
-# https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
-
+STATIC_URL = '/static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

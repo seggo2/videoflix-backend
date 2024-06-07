@@ -1,71 +1,62 @@
 import json
-from rest_framework.authtoken.views import ObtainAuthToken
+from django.contrib.auth import get_user_model, login
+from django.contrib.auth.tokens import default_token_generator
+from django.core.mail import EmailMessage
+from django.http import Http404, HttpResponse, JsonResponse
+from django.shortcuts import get_object_or_404, redirect
+from django.template.loader import render_to_string
+from django.utils.decorators import method_decorator
+from django.utils.encoding import force_bytes
+from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
+from django.views import View
+from django.views.decorators.csrf import csrf_exempt
+from django_registration.forms import RegistrationForm
+from rest_framework import status
+from rest_framework.authentication import TokenAuthentication
 from rest_framework.authtoken.models import Token
+from rest_framework.authtoken.views import ObtainAuthToken
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
+
 from .models import CustomUser
 from .serializers import UserSerializer
-from rest_framework.authentication import TokenAuthentication
-from rest_framework.permissions import IsAuthenticated
-from django.contrib.auth import get_user_model
-from django.http import Http404, JsonResponse
-from django.views.decorators.csrf import csrf_exempt
-from django_registration.backends.activation.views import RegistrationView as BaseRegistrationView
-from django_registration.forms import RegistrationForm
-from django_registration.backends.activation.views import RegistrationView as BaseRegistrationView
-from django_registration.forms import RegistrationForm
-from django.contrib.sites.shortcuts import get_current_site
-from django.core.mail import EmailMessage
-from django.template.loader import render_to_string
-from django.utils.http import urlsafe_base64_encode
-from django.utils.encoding import force_bytes
-from django.urls import reverse
-from django.contrib.auth.models import User
-from django.http import JsonResponse
-from django.views import View
-from django.contrib.auth.tokens import default_token_generator
-from django.contrib.auth import login
-from django.urls import reverse_lazy
-from django.http import HttpResponse
-from django.utils.http import urlsafe_base64_decode
-from rest_framework import status
-from django.core.mail import send_mail
-from django.shortcuts import get_object_or_404
-from django.utils.decorators import method_decorator
-from django.shortcuts import redirect
 
 
 class LoginView(ObtainAuthToken):
     def post(self, request, *args, **kwargs):
         try:
-            serializer = self.serializer_class(data=request.data,
-                                               context={'request': request})
+            serializer = self.serializer_class(
+                data=request.data,
+                context={'request': request}
+            )
             serializer.is_valid(raise_exception=True)
             user = serializer.validated_data['user']
             if not user.is_authenticated:
-                return Response({'detail': 'Please confirm your email.'}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({'detail': 'Please confirm your email.'},
+                                status=status.HTTP_400_BAD_REQUEST)
             token, created = Token.objects.get_or_create(user=user)
             return Response({
                 'token': token.key,
                 'user_id': user.pk,
                 'email': user.email
             })
-        except Exception as e:
-            return Response({'detail': 'Username or password are wrong.'}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception:
+            return Response({'detail': 'Username or password are wrong.'},
+                            status=status.HTTP_400_BAD_REQUEST)
 
-class put(APIView):
+
+class PutView(APIView):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
+
     def put(self, request, pk, *args, **kwargs):
-        if request.method == 'PUT':
-            todo = self.get_object(pk)
-            serializer = UserSerializer(todo, data=request.data)
-            if serializer.is_valid():
-                serializer.save(author=request.user)
-                return JsonResponse(serializer.data, status=200)
-            return JsonResponse(serializer.errors, status=400)
-        else:
-            return JsonResponse({'error': 'Only PUT requests are allowed'}, status=405)
+        todo = self.get_object(pk)
+        serializer = UserSerializer(todo, data=request.data)
+        if serializer.is_valid():
+            serializer.save(author=request.user)
+            return JsonResponse(serializer.data, status=200)
+        return JsonResponse(serializer.errors, status=400)
 
     def get_object(self, pk):
         try:
@@ -73,7 +64,8 @@ class put(APIView):
         except CustomUser.DoesNotExist:
             raise Http404
 
-class delete(APIView):
+
+class DeleteView(APIView):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
 
@@ -91,7 +83,8 @@ class delete(APIView):
         except CustomUser.DoesNotExist:
             raise Http404
 
-@method_decorator(csrf_exempt, name='dispatch')  
+
+@method_decorator(csrf_exempt, name='dispatch')
 class CustomRegistrationView(View):
     form_class = RegistrationForm
 
@@ -100,52 +93,54 @@ class CustomRegistrationView(View):
         return super().dispatch(request, *args, **kwargs)
 
     def post(self, request):
-        body_data = json.loads(request.body.decode('utf-8')) 
+        body_data = json.loads(request.body.decode('utf-8'))
         username = body_data.get('username')
         email = body_data.get('email')
         password = body_data.get('password')
         User = get_user_model()
 
         if User.objects.filter(email=email).exists():
-            return JsonResponse({'error': 'A user with this email already exists.'}, status=400)
+            return JsonResponse({'error': 'A user with this email already exists.'},
+                                status=400)
 
         user = User.objects.create_user(username=username, email=email, password=password)
-        user.is_active = False  
+        user.is_active = False
         user.save()
 
         self.send_activation_email(user)
 
-        return JsonResponse({'message': 'User created successfully. Please check your email to activate your account.'})
-
+        return JsonResponse({
+            'message': 'User created successfully. Please check your email to activate your account.'
+        })
 
     def send_activation_email(self, user):
-       current_site = get_current_site(self.request)
-       mail_subject = 'Activate your account'
-       protocol = 'https' if self.request.is_secure() else 'http' 
-       uid = urlsafe_base64_encode(force_bytes(user.pk))
-       token = default_token_generator.make_token(user)
-       activation_key = f"{uid}-{token}"  # Decode UID, um es als String zu verwenden
+        mail_subject = 'Activate your account'
+        protocol = 'https' if self.request.is_secure() else 'http'
+        uid = urlsafe_base64_encode(force_bytes(user.pk))
+        token = default_token_generator.make_token(user)
+        activation_key = f"{uid}-{token}"
 
-       user.activation_token = token
-       user.save()
-    
-       message = render_to_string('account_activation_email.html', {
-        'user': user,
-        'domain': 'sefa-gur.developerakademie.org',
-        'protocol': protocol, 
-        'activation_key': activation_key,  
-    })
-    
-       to_email = user.email
-       email = EmailMessage(mail_subject, message, 'videoflix_project@mail.de', to=[to_email])
-       email.send()
+        user.activation_token = token
+        user.save()
 
-@method_decorator(csrf_exempt, name='dispatch')  
+        message = render_to_string('account_activation_email.html', {
+            'user': user,
+            'domain': 'sefa-gur.developerakademie.org',
+            'protocol': protocol,
+            'activation_key': activation_key,
+        })
+
+        to_email = user.email
+        email = EmailMessage(mail_subject, message, 'videoflix_project@mail.de', to=[to_email])
+        email.send()
+
+
+@method_decorator(csrf_exempt, name='dispatch')
 def register_view(request):
     if request.method == 'POST':
         return CustomRegistrationView.as_view()(request)
     else:
-        return JsonResponse({'error': 'Only POST requests are allowed.'}, status=405)  
+        return JsonResponse({'error': 'Only POST requests are allowed.'}, status=405)
 
 
 class ActivationView(View):
@@ -154,19 +149,18 @@ class ActivationView(View):
 
     def get(self, request, activation_key):
         try:
-            uid, token, _ = activation_key.split('-')  
+            uid, token, _ = activation_key.split('-')
             uid_decoded = urlsafe_base64_decode(uid).decode()
             user = get_user_model().objects.get(pk=uid_decoded)
         except (ValueError, OverflowError, get_user_model().DoesNotExist):
             return HttpResponse("Invalid activation link")
-        tokenUser,tokenSecond=user.activation_token.split('-')  
-        if tokenUser == token and tokenSecond == _:
+        token_user, token_second = user.activation_token.split('-')
+        if token_user == token and token_second == _:
             user.is_active = True
-            user.authenticated=True
+            user.authenticated = True
             user.save()
-            login(request, user)  
+            login(request, user)
             return HttpResponse("Thank You")
-
         else:
             return HttpResponse("Invalid activation link")
 
@@ -176,20 +170,20 @@ class UserDetailView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, *args, **kwargs):
-       if request.method == 'GET':
-          user = request.user
-          user_data = {
+        user = request.user
+        user_data = {
             'first_name': user.first_name,
             'last_name': user.last_name,
             'address': user.address,
             'phone': user.phone
         }
-          return Response(user_data)
+        return Response(user_data)
+
     def put(self, request, *args, **kwargs):
         user = request.user
         if not user.is_authenticated:
             return JsonResponse({'error': 'User not authenticated'}, status=401)
-        
+
         try:
             data = json.loads(request.body)
             user.first_name = data.get('first_name', user.first_name)
@@ -209,7 +203,7 @@ class UserDetailView(APIView):
             return JsonResponse({'error': 'Invalid JSON data'}, status=400)
         except Exception as e:
             return JsonResponse({'error': str(e)}, status=500)
-        
+
 
 @method_decorator(csrf_exempt, name='dispatch')
 class PasswordResetRequestView(View):
@@ -221,13 +215,13 @@ class PasswordResetRequestView(View):
         return JsonResponse({"message": "Password reset email sent."}, status=200)
 
     def send_password_reset_email(self, user):
-        domain ='sefa-gur.developerakademie.org'
+        domain = 'sefa-gur.developerakademie.org'
         mail_subject = 'Passwort zurücksetzen'
         protocol = 'https' if self.request.is_secure() else 'http'
         uid = urlsafe_base64_encode(force_bytes(user.pk))
         token = default_token_generator.make_token(user)
         reset_url = f"{protocol}://{domain}/reset-password/{uid}/{token}/"
-        
+
         message = render_to_string('password_reset_email.html', {
             'user': user,
             'reset_url': reset_url,
@@ -235,7 +229,7 @@ class PasswordResetRequestView(View):
         to_email = user.email
         email = EmailMessage(mail_subject, message, 'videoflix_project@mail.de', to=[to_email])
         email.send()
-        
+
 
 @method_decorator(csrf_exempt, name='dispatch')
 class PasswordResetConfirmView(View):
@@ -253,11 +247,10 @@ class PasswordResetConfirmView(View):
             return redirect(f"http://localhost:4200/reset-password/{uidb64}/{token}/")
         else:
             return HttpResponse("Invalid password reset link")
-        
-      
-@method_decorator(csrf_exempt, name='dispatch')  
-class setNewPassword(View):
 
+
+@method_decorator(csrf_exempt, name='dispatch')
+class SetNewPassword(View):
     def post(self, request, *args, **kwargs):
         try:
             data = json.loads(request.body.decode('utf-8'))
@@ -277,9 +270,8 @@ class setNewPassword(View):
                 return JsonResponse({"message": "Password has been reset successfully"}, status=200)
             else:
                 return JsonResponse({"error": "Invalid token"}, status=400)
-        
         except json.JSONDecodeError:
             return JsonResponse({"error": "Invalid JSON"}, status=400)
-    
+
     def dispatch(self, *args, **kwargs):
         return super().dispatch(*args, **kwargs)
