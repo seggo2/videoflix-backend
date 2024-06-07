@@ -28,16 +28,16 @@ class VideoViewsTestCase(APITestCase):
         url = reverse('videoflix-board')
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertIn('test_video.jpg', response.data)
+        self.assertIn('test_video.jpg', response.json())
 
     def test_download_image(self):
         image_name = 'test_video.jpg'
         url = reverse('download-image', kwargs={'image_name': image_name})
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertIn('title', response.data)
-        self.assertIn('description', response.data)
-        self.assertIn('image_url', response.data)
+        self.assertIn('title', response.json())
+        self.assertIn('description', response.json())
+        self.assertIn('image_url', response.json())
 
     def test_download_image_not_found(self):
         image_name = 'nonexistent_image.jpg'
@@ -50,9 +50,9 @@ class VideoViewsTestCase(APITestCase):
         url = reverse('get-video', kwargs={'video_name': video_name})
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertIn('1080p', response.data)
-        self.assertIn('720p', response.data)
-        self.assertIn('480p', response.data)
+        self.assertIn('1080p', response.json())
+        self.assertIn('720p', response.json())
+        self.assertIn('480p', response.json())
 
     def test_get_video_not_found(self):
         video_name = 'nonexistent_video'

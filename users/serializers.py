@@ -1,7 +1,5 @@
 from rest_framework import serializers
-
 from .models import CustomUser
-
 
 class UserSerializer(serializers.ModelSerializer):
     author_name = serializers.SerializerMethodField()
@@ -11,5 +9,4 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CustomUser
-        fields = ['id', 'custom', 'address', 'phone']
-
+        fields = ['id', 'custom', 'address', 'phone', 'author_name']  # Füge 'author_name' hier hinzu

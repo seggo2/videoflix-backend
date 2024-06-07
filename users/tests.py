@@ -11,6 +11,8 @@ class UserAPITest(APITestCase):
         self.user = CustomUser.objects.create_user(
             username='testuser', email='test@example.com', password='testpassword'
         )
+        self.user.activation_token = default_token_generator.make_token(self.user)
+        self.user.save()
         self.client.force_authenticate(user=self.user)
 
     def test_login_view(self):
