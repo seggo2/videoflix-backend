@@ -26,11 +26,15 @@ from rest_framework import status
 class LoginView(ObtainAuthToken):
     def post(self, request, *args, **kwargs):
         serializer = self.serializer_class(data=request.data, context={'request': request})
-        if not serializer.is_valid():
-            return Response({'detail': 'Username or password are incorrect'}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            serializer.is_valid(raise_exception=True)
+        except Exception:
+            return Response({"error": "username or password are incorrect"}, status=status.HTTP_400_BAD_REQUEST)
+        
         user = serializer.validated_data['user']
         if not user.is_active:
-            raise AuthenticationFailed('Please confirm your email.')
+            return Response({"error": "Please confirm your email."}, status=status.HTTP_400_BAD_REQUEST)
+        
         token, created = Token.objects.get_or_create(user=user)
         return Response({
             'token': token.key,
