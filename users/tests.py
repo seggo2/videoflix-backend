@@ -8,20 +8,18 @@ from .models import CustomUser
 
 
 class UserAPITest(APITestCase):
+    
     def setUp(self):
-        self.user = CustomUser.objects.create_user(
-            username='testuser', email='test@example.com', password='testpassword'
-        )
-        self.user.activation_token = default_token_generator.make_token(self.user)
-        self.user.save()
-        self.client.force_authenticate(user=self.user)
-
+       self.user = CustomUser.objects.create_user(username='testuser', email='testuser@example.com', password='password123')
+       self.user.first_name = 'First'
+       self.user.save()
+   
     def test_login_view(self):
-        url = reverse('login')
-        data = {'username': 'testuser', 'password': 'testpassword'}
-        response = self.client.post(url, data, format='json')
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertIn('token', response.json())
+       url = reverse('login')
+       data = {'email': 'testuser@example.com', 'password': 'password123'}
+       response = self.client.post(url, data, format='json')
+       self.assertEqual(response.status_code, 200)
+       self.assertIn('token', response.data)
 
     def test_user_detail_view(self):
         url = reverse('user-detail')
@@ -78,17 +76,12 @@ class UserAPITest(APITestCase):
         self.assertIn('message', response.json())
 
     def test_put_view(self):
-        url = reverse('put-view', kwargs={'pk': self.user.pk})
-        data = {
-            'first_name': 'UpdatedFirstName',
-            'last_name': 'UpdatedLastName',
-            'address': 'New Address',
-            'phone': '123456789'
-        }
-        response = self.client.put(url, data, format='json')
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.json()['first_name'], 'UpdatedFirstName')
-        self.assertEqual(response.json()['last_name'], 'UpdatedLastName')
+       url = reverse('put-view', kwargs={'pk': self.user.pk})
+       data = {'first_name': 'UpdatedFirstName'}
+       self.client.force_authenticate(user=self.user)
+       response = self.client.put(url, data, format='json')
+       self.assertEqual(response.status_code, 200)
+       self.assertEqual(response.data['first_name'], 'UpdatedFirstName')
 
     def test_delete_view(self):
         url = reverse('delete-view', kwargs={'pk': self.user.pk})

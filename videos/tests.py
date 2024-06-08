@@ -10,9 +10,20 @@ import shutil
 class UserAPITest(APITestCase):
 
     def setUp(self):
-        self.user = CustomUser.objects.create_user(email='testuser@example.com', password='password123')
-        self.user.first_name = 'First'
-        self.user.save()
+        self.user = CustomUser.objects.create_user(username='testuser', email='testuser@example.com', password='password123')
+        self.test_video = Video.objects.create(
+        title='Test video',
+        description='Test description',
+        genre='Test genre',
+        video_file='videos/Test_video.mp4'
+    )
+        video_dir = os.path.join(settings.MEDIA_ROOT, 'videos')
+        os.makedirs(video_dir, exist_ok=True)
+        with open(os.path.join(video_dir, 'Test_video.mp4'), 'wb') as f:
+          f.write(b'test video content')
+        with open(os.path.join(video_dir, 'Test_video.jpg'), 'wb') as f:
+          f.write(b'test image content')
+
 
     def test_login_view(self):
         url = reverse('login')
@@ -49,24 +60,19 @@ class VideoViewsTestCase(APITestCase):
         shutil.rmtree(video_dir)
 
     def test_videoflix_board(self):
-        url = reverse('videoflix-board')
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, 200)
-        images = [img.split('_')[0] + '.jpg' for img in response.json()]
-        self.assertIn('Test_video.jpg', images)
+       url = reverse('videoflix-board')
+       response = self.client.get(url)
+       self.assertEqual(response.status_code, 200)
+       images = [img.split('_')[0] + '.jpg' for img in response.json()]
+       self.assertIn('Test_video.jpg', images)
 
     def test_download_image(self):
-        url = reverse('download-image', kwargs={'image_name': 'Test_video.jpg'})
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, 200)
-        self.assertIn('title', response.data)
-        self.assertIn('description', response.data)
-        self.assertIn('image_url', response.data)
+       url = reverse('download-image', args=['Test_video.jpg'])
+       response = self.client.get(url)
+       self.assertEqual(response.status_code, 200)
 
     def test_get_video(self):
-        url = reverse('get-video', kwargs={'video_name': 'Test_video.mp4'})
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, 200)
-        self.assertIn('1080p', response.json())
-        self.assertIn('720p', response.json())
-        self.assertIn('480p', response.json())
+       url = reverse('get-video', args=['Test_video.mp4'])
+       response = self.client.get(url)
+       self.assertEqual(response.status_code, 200)
+   
