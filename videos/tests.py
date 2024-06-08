@@ -15,7 +15,7 @@ class VideoViewsTestCase(APITestCase):
             title='Test Video',
             description='Test Description',
             genre='Test',
-            video_file='videos/test_video.mp4'
+            video_file='videos/Test_video.mp4.mp4'
         )
 
     def test_videoflix_board(self):
@@ -25,11 +25,11 @@ class VideoViewsTestCase(APITestCase):
         self.assertIn('Test Video', response.json())
 
     def test_download_image(self):
-        url = reverse('download-image', kwargs={'image_name': '72566-543910236_tiny.jpg'})
+        url = reverse('download-image', kwargs={'image_name': 'Test_video.jpg.jpg'})
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_get_video(self):
-        url = reverse('get-video', kwargs={'video_name': '72566-543910236_tiny.mp4'})
+        url = reverse('get-video', kwargs={'video_name': 'Test_video.mp4.mp4'})
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)

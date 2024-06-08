@@ -13,7 +13,7 @@ class UserAPITest(APITestCase):
 
     def test_login_view(self):
         url = reverse('login')
-        data = {'username': 'seggo1', 'password': 'sefa123'}
+        data = {'username': 'testuser', 'password': 'password123'}
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
