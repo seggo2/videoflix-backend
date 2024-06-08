@@ -36,6 +36,7 @@ class LoginView(ObtainAuthToken):
             'email': user.email
         })
 
+
 class PutView(APIView):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]

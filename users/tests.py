@@ -6,6 +6,7 @@ from django.utils.encoding import force_bytes
 from django.contrib.auth.tokens import default_token_generator
 from .models import CustomUser
 
+
 class UserAPITest(APITestCase):
     def setUp(self):
         self.user = CustomUser.objects.create_user(
