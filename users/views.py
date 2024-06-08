@@ -31,7 +31,7 @@ class LoginView(ObtainAuthToken):
         user = serializer.validated_data['user']
         if not user.is_active:
             raise AuthenticationFailed('Please confirm your email.')
-        token = Token.objects.get_or_create(user=user)
+        token, created = Token.objects.get_or_create(user=user)
         return Response({
             'token': token.key,
             'user_id': user.pk,
