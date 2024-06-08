@@ -20,7 +20,6 @@ class UserAPITest(APITestCase):
         data = {'username': 'testuser', 'password': 'testpassword'}
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        # self.assertIn('token', response.json())
 
 
     def test_user_detail_view(self):
