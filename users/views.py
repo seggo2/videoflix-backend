@@ -20,23 +20,25 @@ from rest_framework.views import APIView
 from rest_framework.exceptions import AuthenticationFailed
 from .models import CustomUser
 from .serializers import UserSerializer
+from rest_framework import status
 
 
 class LoginView(ObtainAuthToken):
     def post(self, request, *args, **kwargs):
         serializer = self.serializer_class(data=request.data, context={'request': request})
-        serializer.is_valid(raise_exception=True)
+        if not serializer.is_valid():
+            return Response({'detail': 'Username or password are incorrect'}, status=status.HTTP_400_BAD_REQUEST)
         user = serializer.validated_data['user']
         if not user.is_active:
             raise AuthenticationFailed('Please confirm your email.')
-        token, created = Token.objects.get_or_create(user=user)
+        token = Token.objects.get_or_create(user=user)
         return Response({
             'token': token.key,
             'user_id': user.pk,
             'email': user.email
         })
-
-
+        
+        
 class PutView(APIView):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
