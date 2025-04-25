@@ -8,6 +8,8 @@ from .tasks import convert_video, convert_video_720p, convert_video_1080p, extra
 
 
 @receiver(post_save, sender=Video)
+
+
 def video_post_save(sender, instance, created, **kwargs):
     if created:
         queue = django_rq.get_queue('default')

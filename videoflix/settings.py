@@ -55,21 +55,31 @@ CORS_ALLOWED_ORIGINS = [
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '[{levelname}] {asctime} {name} - {message}',
+            'style': '{',
+        },
+    },
     'handlers': {
-        'file': {
-            'level': 'DEBUG',
-            'class': 'logging.FileHandler',
-            'filename': 'django_debug.log',
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose'
         },
     },
     'loggers': {
-        'django': {
-            'handlers': ['file'],
+        'videos.tasks': {  # <-- wichtig: dein Modul
+            'handlers': ['console'],
             'level': 'DEBUG',
-            'propagate': True,
+            'propagate': False,
         },
     },
+    'root': {
+        'handlers': ['console'],
+        'level': 'WARNING',
+    },
 }
+
 
 
 INSTALLED_APPS = [
@@ -139,14 +149,11 @@ WSGI_APPLICATION = 'videoflix.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'PostgresVideoflix',
-        'USER': 'sefa',
-        'PASSWORD': 'sefa123',
-        'HOST': 'localhost',
-        'PORT': '5432',
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
+
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -166,7 +173,6 @@ AUTH_PASSWORD_VALIDATORS = [
 RQ_QUEUES = {
     'default': {
         'HOST': 'localhost',
-        'PASSWORD': 'foobared',
         'PORT': 6379,
         'DB': 0,
         'DEFAULT_TIMEOUT': 360,

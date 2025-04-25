@@ -22,19 +22,34 @@ from .models import CustomUser
 from .serializers import UserSerializer
 from rest_framework import status
 
+User = get_user_model()
 
 class LoginView(ObtainAuthToken):
     def post(self, request, *args, **kwargs):
+        username = request.data.get('username')
+        password = request.data.get('password')
+
+        # Gastbenutzer automatisch erstellen, wenn nicht vorhanden
+        if username == 'gast':
+            user, created = User.objects.get_or_create(username='gast', defaults={
+                'email': 'gast@example.com',
+                'is_active': True
+            })
+            if created:
+                user.set_password('gast123')
+                user.save()
+
+        # Standard-Login-Logik
         serializer = self.serializer_class(data=request.data, context={'request': request})
         try:
             serializer.is_valid(raise_exception=True)
         except Exception:
             return Response({"error": "username or password are incorrect"}, status=status.HTTP_400_BAD_REQUEST)
-        
+
         user = serializer.validated_data['user']
         if not user.is_active:
             return Response({"error": "Please confirm your email."}, status=status.HTTP_400_BAD_REQUEST)
-        
+
         token, created = Token.objects.get_or_create(user=user)
         return Response({
             'token': token.key,
@@ -42,7 +57,7 @@ class LoginView(ObtainAuthToken):
             'email': user.email
         })
         
-        
+
 class PutView(APIView):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
@@ -90,25 +105,35 @@ class CustomRegistrationView(View):
         return super().dispatch(request, *args, **kwargs)
 
     def post(self, request):
-        body_data = json.loads(request.body.decode('utf-8'))
-        username = body_data.get('username')
-        email = body_data.get('email')
-        password = body_data.get('password')
-        User = get_user_model()
+        try:
+            body_data = json.loads(request.body.decode('utf-8'))
+            username = body_data.get('username')
+            email = body_data.get('email')
+            password = body_data.get('password')
+            User = get_user_model()
 
-        if User.objects.filter(email=email).exists():
-            return JsonResponse({'error': 'A user with this email already exists.'},
-                                status=400)
+            # Zusätzliche Sicherheitsprüfung, auch wenn der Check schon im Frontend war
+            if User.objects.filter(email=email).exists():
+                return JsonResponse({'error': 'E-Mail ist bereits vergeben.'}, status=400)
 
-        user = User.objects.create_user(username=username, email=email, password=password)
-        user.is_active = False
-        user.save()
+            if User.objects.filter(username=username).exists():
+                return JsonResponse({'error': 'Benutzername ist bereits vergeben.'}, status=400)
 
-        self.send_activation_email(user)
+            # User erstellen
+            user = User.objects.create_user(username=username, email=email, password=password)
+            user.is_active = False
+            user.save()
 
-        return JsonResponse({
-            'message': 'User created successfully. Please check your email to activate your account.'
-        })
+            # Aktivierungsmail versenden
+            self.send_activation_email(user)
+
+            return JsonResponse({
+                'message': 'User created successfully. Please check your email to activate your account.'
+            })
+
+        except Exception as e:
+            print('❌ Fehler bei der Registrierung:', e)
+            return JsonResponse({'error': 'Ein unerwarteter Fehler ist aufgetreten.'}, status=500)
 
     def send_activation_email(self, user):
         mail_subject = 'Activate your account'
@@ -122,7 +147,7 @@ class CustomRegistrationView(View):
 
         message = render_to_string('account_activation_email.html', {
             'user': user,
-            'domain': 'sefa-gur.developerakademie.org',
+            'domain': 'sefavideoflix.duckdns.org',
             'protocol': protocol,
             'activation_key': activation_key,
         })
@@ -162,59 +187,47 @@ class ActivationView(View):
             return HttpResponse("Invalid activation link")
 
 
-class UserDetailView(APIView):
-    authentication_classes = [TokenAuthentication]
-    permission_classes = [IsAuthenticated]
+@method_decorator(csrf_exempt, name='dispatch')
+class CheckUserView(View):
+    def post(self, request, *args, **kwargs):
+        data = json.loads(request.body.decode('utf-8'))
+        username = data.get('username')
+        email = data.get('email')
 
-    def get(self, request, *args, **kwargs):
-        user = request.user
-        user_data = {
-            'first_name': user.first_name,
-            'last_name': user.last_name,
-            'address': user.address,
-            'phone': user.phone
-        }
-        return Response(user_data)
+        if CustomUser.objects.filter(username=username).exists():
+            return JsonResponse({'error': 'Benutzername ist bereits vergeben.'}, status=400)
+        
+        if CustomUser.objects.filter(email=email).exists():
+            return JsonResponse({'error': 'E-Mail ist bereits registriert.'}, status=400)
 
-    def put(self, request, *args, **kwargs):
-        user = request.user
-        if not user.is_authenticated:
-            return JsonResponse({'error': 'User not authenticated'}, status=401)
-
-        try:
-            data = json.loads(request.body)
-            user.first_name = data.get('first_name', user.first_name)
-            user.last_name = data.get('last_name', user.last_name)
-            user.address = data.get('address', user.address)
-            user.phone = data.get('phone', user.phone)
-            user.save()
-
-            return JsonResponse({
-                'message': 'User details updated successfully',
-                'first_name': user.first_name,
-                'last_name': user.last_name,
-                'address': user.address,
-                'phone': user.phone
-            }, status=200)
-        except json.JSONDecodeError:
-            return JsonResponse({'error': 'Invalid JSON data'}, status=400)
-        except Exception as e:
-            return JsonResponse({'error': str(e)}, status=500)
+        return JsonResponse({'message': 'Benutzername und E-Mail sind verfügbar.'}, status=200)
 
 
 @method_decorator(csrf_exempt, name='dispatch')
 class PasswordResetRequestView(View):
     def post(self, request, *args, **kwargs):
-        request_body = json.loads(request.body.decode('utf-8'))
-        email = request_body.get('email')
-        user = get_object_or_404(CustomUser, email=email)
-        self.send_password_reset_email(user)
-        return JsonResponse({"message": "Password reset email sent."}, status=200)
+        try:
+            request_body = json.loads(request.body.decode('utf-8'))
+            email = request_body.get('email')
 
-    def send_password_reset_email(self, user):
-        domain = 'sefa-gur.developerakademie.org'
+            if not email:
+                return JsonResponse({"error": "E-Mail-Adresse ist erforderlich."}, status=400)
+            try:
+                user = CustomUser.objects.get(email=email)
+                self.send_password_reset_email(user, request)
+            except CustomUser.DoesNotExist:
+                pass 
+
+            return JsonResponse({"message": "Wenn ein Konto mit dieser E-Mail existiert, wurde eine Reset-Mail gesendet."}, status=200)
+
+        except Exception as e:
+            print("❌ Fehler bei Passwort-Reset-Anfrage:", e)
+            return JsonResponse({"error": "Ein unerwarteter Fehler ist aufgetreten."}, status=500)
+
+    def send_password_reset_email(self, user, request):
+        domain = 'sefavideoflix.duckdns.org'
         mail_subject = 'Passwort zurücksetzen'
-        protocol = 'https' if self.request.is_secure() else 'http'
+        protocol = 'https' if request.is_secure() else 'http'
         uid = urlsafe_base64_encode(force_bytes(user.pk))
         token = default_token_generator.make_token(user)
         reset_url = f"{protocol}://{domain}/reset-password/{uid}/{token}/"
@@ -223,10 +236,15 @@ class PasswordResetRequestView(View):
             'user': user,
             'reset_url': reset_url,
         })
-        to_email = user.email
-        email = EmailMessage(mail_subject, message, 'videoflix_project@mail.de', to=[to_email])
-        email.send()
 
+        email = EmailMessage(
+            mail_subject,
+            message,
+            'videoflix_project@mail.de',
+            [user.email]
+        )
+        email.content_subtype = "html"  # ✅ HTML aktivieren
+        email.send()
 
 @method_decorator(csrf_exempt, name='dispatch')
 class PasswordResetConfirmView(View):
@@ -255,20 +273,27 @@ class SetNewPassword(View):
             token = data.get('token')
             new_password = data.get('new_password')
 
+            if not uid or not token or not new_password:
+                return JsonResponse({"error": "Alle Felder sind erforderlich."}, status=400)
+
+            if len(new_password) < 7:
+                return JsonResponse({"error": "Das Passwort muss mindestens 7 Zeichen lang sein."}, status=400)
+
             try:
                 uid = urlsafe_base64_decode(uid).decode()
                 user = get_user_model().objects.get(pk=uid)
             except (TypeError, ValueError, OverflowError, get_user_model().DoesNotExist):
-                return JsonResponse({"error": "Invalid user ID"}, status=400)
+                return JsonResponse({"error": "Ungültiger Benutzer."}, status=400)
 
             if default_token_generator.check_token(user, token):
                 user.set_password(new_password)
                 user.save()
-                return JsonResponse({"message": "Password has been reset successfully"}, status=200)
+                return JsonResponse({"message": "Passwort erfolgreich geändert."}, status=200)
             else:
-                return JsonResponse({"error": "Invalid token"}, status=400)
+                return JsonResponse({"error": "Ungültiges oder abgelaufenes Token."}, status=400)
+
         except json.JSONDecodeError:
-            return JsonResponse({"error": "Invalid JSON"}, status=400)
+            return JsonResponse({"error": "Ungültiges JSON-Format."}, status=400)
 
     def dispatch(self, *args, **kwargs):
         return super().dispatch(*args, **kwargs)
