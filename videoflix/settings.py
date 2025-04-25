@@ -33,21 +33,25 @@ ALLOWED_HOSTS = [
     '127.0.0.1',
     'localhost:4200',
     'localhost:8000',
-    'sefa-gur.developerakademie.org',
-    'sefa-guer.developerakademie.net'    
+    'https://videoflix.sefa.duckdns.org',
+    'http://videoflix.sefa.duckdns.org'
+
 ]
 
 CSRF_TRUSTED_ORIGINS = [
     'https://localhost:4200',
     'https://127.0.0.1',
-    'https://sefa-gur.developerakademie.org',
-    'https://sefa-guer.developerakademie.net',
+    'https://videoflix.sefa.duckdns.org',
+    'http://videoflix.sefa.duckdns.org'
+
 ]
 
 CORS_ALLOWED_ORIGINS = [
-    'https://sefa-guer.developerakademie.net',
     'http://localhost:4200',
     'https://127.0.0.1',
+    'https://videoflix.sefa.duckdns.org',
+    'http://videoflix.sefa.duckdns.org'
+
 ]
 
 # Application definition
