@@ -147,7 +147,7 @@ class CustomRegistrationView(View):
 
         message = render_to_string('account_activation_email.html', {
             'user': user,
-            'domain': 'sefavideoflix.duckdns.org',
+            'domain': 'sefaflixapi.duckdns.org',
             'protocol': protocol,
             'activation_key': activation_key,
         })

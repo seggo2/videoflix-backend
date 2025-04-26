@@ -29,7 +29,6 @@ class VideoflixBoard(APIView):
 
 class VideoUploadView(APIView):
     
-
     def post(self, request, format=None):
         video_file = request.FILES.get('video')
         title = request.POST.get('title')
@@ -58,6 +57,7 @@ class VideoUploadView(APIView):
             'description': video.description
         }, status=status.HTTP_201_CREATED)
 
+
 def download_image(request, image_name):
     video_name = image_name.replace('.jpg', '.mp4')
     video_path = os.path.join(settings.MEDIA_ROOT, 'videos', video_name)
@@ -85,7 +85,6 @@ def get_video(request, video_name):
         return HttpResponseNotFound('Video not found')
 
     video_urls = {
-        '1080p': request.build_absolute_uri(f'{settings.MEDIA_URL}videos/{video_name}_1080p.mp4'),
         '720p': request.build_absolute_uri(f'{settings.MEDIA_URL}videos/{video_name}_720p.mp4'),
         '480p': request.build_absolute_uri(f'{settings.MEDIA_URL}videos/{video_name}_480p.mp4')
     }
